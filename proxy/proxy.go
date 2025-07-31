@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/JSainsburyPLC/ui-dev-proxy/domain"
+	"github.com/webbgeorge/ui-dev-proxy/domain"
 )
 
 const routeCtxKey = "route"
@@ -43,8 +43,9 @@ func NewProxy(
 	}
 	return &Proxy{
 		server: &http.Server{
-			Addr:    fmt.Sprintf(":%d", port),
-			Handler: handler(logger, reverseProxy, conf, domain.NewMatcher(), mocksEnabled),
+			Addr:              fmt.Sprintf(":%d", port),
+			Handler:           handler(logger, reverseProxy, conf, domain.NewMatcher(), mocksEnabled),
+			ReadHeaderTimeout: time.Second * 60,
 		},
 	}
 }
@@ -84,7 +85,7 @@ func director(defaultBackend *url.URL, logger *log.Logger) func(req *http.Reques
 		for _, rule := range route.Rewrite {
 			if matches := rule.PathPattern.MatchString(path.Clean(req.URL.Path)); matches {
 				if err := rewrite(rule, req); err != nil {
-					logger.Println(fmt.Sprintf("failed to rewrite request. %v", err))
+					logger.Printf("failed to rewrite request. %v\n", err)
 					continue
 				}
 				break
@@ -187,7 +188,7 @@ func modifyResponse() func(*http.Response) error {
 			}
 
 			res.Header.Set("content-length", fmt.Sprintf("%d", len(bodyBytes)))
-			res.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+			res.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		}
 
 		return nil

@@ -1,13 +1,19 @@
 # UI Dev Proxy
 
-[![Build Status](https://img.shields.io/travis/JSainsburyPLC/ui-dev-proxy.svg?logo=travis&style=for-the-badge)](https://travis-ci.org/JSainsburyPLC/ui-dev-proxy)
-
-Proxy tool for development of UIs. Supports mocks, http redirects and URL rewriting. 
+Proxy tool for development of UIs. Supports mocks, http redirects and URL rewriting.
 
 ## Installation
 
+### Installation using static binary
+
+Download the latest version from the latest GitHub release, and move to a location on your system PATH.
+
+### Installation using `go install`
+
+If Go is installed, ui-dev-proxy can simply be installed by running:
+
 ```
-go install github.com/JSainsburyPLC/ui-dev-proxy@latest
+go install github.com/webbgeorge/ui-dev-proxy@latest
 ```
 
 ## Usage
@@ -95,17 +101,3 @@ See `examples/config.json`
   }
 }
 ```
-
-## Development
-
-### Release
-
-Releases are managed using goreleaser. Download a binary from a release [here](https://github.com/goreleaser/goreleaser/releases) and ensure it is on your PATH: 
-
-To release:
--	Tag the commit you want to release, e.g. `git tag v0.1.1`
--	run `make release` 
-
-You will need a github personal access token bound to env var `GITHUB_TOKEN`
-
-You can dry run the release by running `make release-dry-run`

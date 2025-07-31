@@ -4,9 +4,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/JSainsburyPLC/ui-dev-proxy/commands"
-	"github.com/JSainsburyPLC/ui-dev-proxy/file"
 	"github.com/urfave/cli"
+	"github.com/webbgeorge/ui-dev-proxy/commands"
+	"github.com/webbgeorge/ui-dev-proxy/file"
 )
 
 var Version string

@@ -1,18 +1,18 @@
 package proxy
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"regexp"
 	"testing"
 
-	"github.com/JSainsburyPLC/ui-dev-proxy/domain"
 	"github.com/steinfletcher/apitest"
+	"github.com/webbgeorge/ui-dev-proxy/domain"
 )
 
-func newApiTest(
+func newAPITest(
 	conf domain.Config,
 	defaultBackend string,
 	mocksEnabled bool,
@@ -21,13 +21,13 @@ func newApiTest(
 	if err != nil {
 		panic(err)
 	}
-	logger := log.New(ioutil.Discard, "", log.LstdFlags)
+	logger := log.New(io.Discard, "", log.LstdFlags)
 	p := NewProxy(8080, conf, u, mocksEnabled, logger)
 	return apitest.New().Handler(p.server.Handler)
 }
 
 func TestProxy_DefaultBackend_Success(t *testing.T) {
-	newApiTest(config(), "http://test-backend", false).
+	newAPITest(config(), "http://test-backend", false).
 		Mocks(
 			defaultBackendMock(http.StatusOK, `{"product_id": "123"}`),
 		).
@@ -39,7 +39,7 @@ func TestProxy_DefaultBackend_Success(t *testing.T) {
 }
 
 func TestProxy_ProxyBackend_OtherProxy_Success(t *testing.T) {
-	newApiTest(config(), "http://test-backend", false).
+	newAPITest(config(), "http://test-backend", false).
 		Mocks(
 			otherProxyMock(http.StatusOK, `{"product_id": "123"}`),
 		).
@@ -51,7 +51,7 @@ func TestProxy_ProxyBackend_OtherProxy_Success(t *testing.T) {
 }
 
 func TestProxy_ProxyBackend_UserProxy_Success(t *testing.T) {
-	newApiTest(config(), "http://test-backend", false).
+	newAPITest(config(), "http://test-backend", false).
 		Mocks(
 			userProxyMock(http.StatusOK, `{"user_id": "123"}`),
 		).
@@ -71,7 +71,7 @@ func TestProxy_ProxyBackend_ResponseReplacements(t *testing.T) {
 		Body(`{"product_id": "test-value-1"}`).
 		End()
 
-	newApiTest(config(), "http://test-backend", false).
+	newAPITest(config(), "http://test-backend", false).
 		Mocks(backendMock).
 		Get("/test-ui/users/info").
 		Expect(t).
@@ -121,18 +121,18 @@ func TestProxy_Rewrite(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			mockProxyUrlUserUi, _ := url.Parse("http://localhost:3001")
+			mockProxyURLUserUI, _ := url.Parse("http://localhost:3001")
 			route := domain.Route{
 				Type:        "proxy",
 				PathPattern: &domain.PathPattern{Regexp: regexp.MustCompile("^/test-ui/users/.*")},
-				Backend:     &domain.Backend{URL: mockProxyUrlUserUi},
+				Backend:     &domain.Backend{URL: mockProxyURLUserUI},
 				Rewrite: []domain.Rewrite{{
 					PathPattern: &domain.PathPattern{Regexp: regexp.MustCompile(test.pattern)},
 					To:          test.to,
 				}},
 			}
 
-			newApiTest(configWithRoutes(route), "http://test-backend", false).
+			newAPITest(configWithRoutes(route), "http://test-backend", false).
 				Mocks(apitest.NewMock().
 					Get("http://localhost:3001" + test.after).
 					RespondWith().
@@ -158,7 +158,7 @@ func TestProxy_ProxyBackend_Redirect_Temporary(t *testing.T) {
 		},
 	}
 
-	newApiTest(configWithRoutes(route), "http://test-backend", false).
+	newAPITest(configWithRoutes(route), "http://test-backend", false).
 		Get("/test-ui/users/info").
 		Expect(t).
 		Status(http.StatusFound).
@@ -176,7 +176,7 @@ func TestProxy_ProxyBackend_Redirect_Permanent(t *testing.T) {
 		},
 	}
 
-	newApiTest(configWithRoutes(route), "http://test-backend", false).
+	newAPITest(configWithRoutes(route), "http://test-backend", false).
 		Get("/test-ui/users/info").
 		Expect(t).
 		Status(http.StatusMovedPermanently).
@@ -185,7 +185,7 @@ func TestProxy_ProxyBackend_Redirect_Permanent(t *testing.T) {
 }
 
 func TestProxy_MockBackend_Failure(t *testing.T) {
-	newApiTest(config(), "http://test-backend", false).
+	newAPITest(config(), "http://test-backend", false).
 		Mocks(
 			mockBackendMock(http.StatusOK, `{"user_id": "123"}`),
 		).
@@ -198,7 +198,7 @@ func TestProxy_MockBackend_Failure(t *testing.T) {
 }
 
 func TestProxy_MocksEnabled_DefaultBackend_Success(t *testing.T) {
-	newApiTest(config(), "http://test-backend", true).
+	newAPITest(config(), "http://test-backend", true).
 		Mocks(
 			defaultBackendMock(http.StatusOK, `{"product_id": "123"}`),
 		).
@@ -210,7 +210,7 @@ func TestProxy_MocksEnabled_DefaultBackend_Success(t *testing.T) {
 }
 
 func TestProxy_MocksEnabled_ProxyBackend_Success(t *testing.T) {
-	newApiTest(config(), "http://test-backend", true).
+	newAPITest(config(), "http://test-backend", true).
 		Mocks(
 			otherProxyMock(http.StatusOK, `{"product_id": "123"}`),
 		).
@@ -254,7 +254,7 @@ func TestProxy_MocksEnabled_MockBackend_Success(t *testing.T) {
 		},
 	}
 
-	newApiTest(conf, "http://test-backend", true).
+	newAPITest(conf, "http://test-backend", true).
 		Intercept(func(request *http.Request) {
 			request.URL.RawQuery = "a=1&b=2"
 		}).
@@ -264,7 +264,7 @@ func TestProxy_MocksEnabled_MockBackend_Success(t *testing.T) {
 		Body(`{"name": "jon"}`).
 		End()
 
-	newApiTest(conf, "http://test-backend", true).
+	newAPITest(conf, "http://test-backend", true).
 		Intercept(func(request *http.Request) {
 			request.URL.RawQuery = "b=2&a=1"
 		}).
@@ -274,7 +274,7 @@ func TestProxy_MocksEnabled_MockBackend_Success(t *testing.T) {
 		Body(`{"name": "jon"}`).
 		End()
 
-	newApiTest(conf, "http://test-backend", true).
+	newAPITest(conf, "http://test-backend", true).
 		Intercept(func(request *http.Request) {
 			request.URL.RawQuery = "c=3"
 		}).
@@ -284,7 +284,7 @@ func TestProxy_MocksEnabled_MockBackend_Success(t *testing.T) {
 		Body(`{"name": "bob"}`).
 		End()
 
-	newApiTest(conf, "http://test-backend", true).
+	newAPITest(conf, "http://test-backend", true).
 		Get("/api/users/info").
 		Expect(t).
 		Status(http.StatusBadGateway).
@@ -292,7 +292,7 @@ func TestProxy_MocksEnabled_MockBackend_Success(t *testing.T) {
 }
 
 func TestProxy_InvalidRouteType_Failure(t *testing.T) {
-	newApiTest(invalidTypeConfig(), "http://test-backend", false).
+	newAPITest(invalidTypeConfig(), "http://test-backend", false).
 		Get("/api/users/info").
 		Expect(t).
 		Status(http.StatusBadGateway).
@@ -333,11 +333,11 @@ func defaultBackendMock(status int, responseBody string) *apitest.Mock {
 }
 
 func config() domain.Config {
-	mockProxyUrlUserUi, err := url.Parse("http://localhost:3001")
+	mockProxyURLUserUI, err := url.Parse("http://localhost:3001")
 	if err != nil {
 		panic(err)
 	}
-	mockProxyUrlOtherUi, err := url.Parse("http://localhost:3002")
+	mockProxyURLOtherUI, err := url.Parse("http://localhost:3002")
 	if err != nil {
 		panic(err)
 	}
@@ -346,7 +346,7 @@ func config() domain.Config {
 			{
 				Type:        "proxy",
 				PathPattern: &domain.PathPattern{Regexp: regexp.MustCompile("^/test-ui/users/.*")},
-				Backend:     &domain.Backend{URL: mockProxyUrlUserUi},
+				Backend:     &domain.Backend{URL: mockProxyURLUserUI},
 				ProxyPassHeaders: map[string]string{
 					"Referer": "https://www.test.example.com",
 				},
@@ -360,7 +360,7 @@ func config() domain.Config {
 			{
 				Type:        "proxy",
 				PathPattern: &domain.PathPattern{Regexp: regexp.MustCompile("^/test-ui/.*")},
-				Backend:     &domain.Backend{URL: mockProxyUrlOtherUi},
+				Backend:     &domain.Backend{URL: mockProxyURLOtherUI},
 			},
 			{
 				Type: "mock",
@@ -394,7 +394,7 @@ func configWithRoutes(routes ...domain.Route) domain.Config {
 }
 
 func invalidTypeConfig() domain.Config {
-	mockProxyUrlUserUi, err := url.Parse("http://localhost:3001")
+	mockProxyURLUserUI, err := url.Parse("http://localhost:3001")
 	if err != nil {
 		panic(err)
 	}
@@ -403,7 +403,7 @@ func invalidTypeConfig() domain.Config {
 			{
 				Type:        "not_a_proxy",
 				PathPattern: &domain.PathPattern{Regexp: regexp.MustCompile("^/test-ui/users/.*")},
-				Backend:     &domain.Backend{URL: mockProxyUrlUserUi},
+				Backend:     &domain.Backend{URL: mockProxyURLUserUI},
 			},
 		},
 	}

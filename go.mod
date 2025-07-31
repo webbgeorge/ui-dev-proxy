@@ -1,4 +1,4 @@
-module github.com/JSainsburyPLC/ui-dev-proxy
+module github.com/webbgeorge/ui-dev-proxy
 
 go 1.13
 
