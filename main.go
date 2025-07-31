@@ -1,19 +1,20 @@
 package main
 
 import (
+	"log"
+	"os"
+
 	"github.com/JSainsburyPLC/ui-dev-proxy/commands"
 	"github.com/JSainsburyPLC/ui-dev-proxy/file"
 	"github.com/urfave/cli"
-	"log"
-	"os"
 )
 
-var version string
+var Version string
 
 func main() {
 	app := cli.NewApp()
 	app.Name = "ui-dev-proxy"
-	app.Version = version
+	app.Version = Version
 
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 	app.Writer = logger.Writer()

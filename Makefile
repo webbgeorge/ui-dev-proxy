@@ -8,9 +8,3 @@ test:
 
 fmt:
 	go fmt ./...
-
-release-dry-run:
-	goreleaser --snapshot --skip-publish --rm-dist
-
-release:
-	goreleaser --rm-dist

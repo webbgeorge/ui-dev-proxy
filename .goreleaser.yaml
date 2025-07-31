@@ -1,0 +1,18 @@
+builds:
+  - id: ui-dev-proxy
+    binary: ui-dev-proxy
+    main: ./main.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -X github.com/webbgeorge/ui-dev-proxy.Version={{.Version}}
+release:
+  header: |
+    ## ui-dev-proxy {{ .Version }}
