@@ -1,3 +1,6 @@
+before:
+  hooks:
+    - make install
 builds:
   - id: ui-dev-proxy
     binary: ui-dev-proxy
